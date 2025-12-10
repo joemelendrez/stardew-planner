@@ -25,6 +25,9 @@ interface FarmStore {
   loadFarm: (farmId: string) => void;
   deleteFarm: (farmId: string) => void;
   updateFarmName: (name: string) => void;
+  duplicateFarm: (farmId: string) => void;
+  createNewFarm: (farmType?: FarmType) => void;
+  importFarm: (farmData: FarmLayout) => void;
 }
 
 const createNewFarm = (farmType: FarmType = 'standard'): FarmLayout => ({
@@ -155,6 +158,35 @@ export const useFarmStore = create<FarmStore>((set, get) => ({
         updatedAt: new Date().toISOString(),
       },
     }));
+  },
+
+  duplicateFarm: (farmId) => {
+    const { savedFarms } = get();
+    const farmToDuplicate = savedFarms.find((f) => f.id === farmId);
+    if (farmToDuplicate) {
+      const newFarm: FarmLayout = {
+        ...farmToDuplicate,
+        id: Date.now().toString(),
+        name: `${farmToDuplicate.name} (Copy)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      set({ currentFarm: newFarm });
+    }
+  },
+
+  createNewFarm: (farmType = 'standard') => {
+    set({ currentFarm: createNewFarm(farmType) });
+  },
+
+  importFarm: (farmData) => {
+    const newFarm: FarmLayout = {
+      ...farmData,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    set({ currentFarm: newFarm });
   },
 }));
 

@@ -19,6 +19,7 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
   const { currentFarm, selectedItem, addItem, removeItem, viewport, setViewport } = useFarmStore();
 
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
   // Expose export method to parent
@@ -125,7 +126,7 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
   }, []);
 
   const handleCanvasClick = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (!selectedItem || isDragging) return;
+    if (!selectedItem) return;
 
     const stage = e.target.getStage();
     if (!stage) return;
@@ -133,28 +134,37 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
     const pointerPos = stage.getPointerPosition();
     if (!pointerPos) return;
 
+    // Check if this was a drag or a click (distance threshold)
+    const dragDistance = Math.sqrt(
+      Math.pow(pointerPos.x - dragStartPos.x, 2) +
+      Math.pow(pointerPos.y - dragStartPos.y, 2)
+    );
+
+    // If dragged more than 5 pixels, don't place item
+    if (dragDistance > 5) return;
+
     // Convert screen coordinates to grid coordinates
     const x = Math.floor((pointerPos.x - viewport.x) / (TILE_SIZE * viewport.scale));
     const y = Math.floor((pointerPos.y - viewport.y) / (TILE_SIZE * viewport.scale));
 
     // Check if placement is valid
-    if (isWithinBounds(x, y, selectedItem.size.width, selectedItem.size.height, 
+    if (isWithinBounds(x, y, selectedItem.size.width, selectedItem.size.height,
         currentFarm.gridSize.width, currentFarm.gridSize.height)) {
-      
+
       const newItem = {
         id: generateId(),
         itemId: selectedItem.id,
         x,
         y,
       };
-      
+
       addItem(newItem);
     }
   };
 
   const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
-    
+
     const scaleBy = 1.1;
     const stage = e.target.getStage();
     if (!stage) return;
@@ -169,7 +179,7 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
     };
 
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    const clampedScale = Math.max(0.2, Math.min(3, newScale));
+    const clampedScale = Math.max(0.05, Math.min(5, newScale)); // Allow zoom from 5% to 500%
 
     setViewport({
       scale: clampedScale,
@@ -181,22 +191,34 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
   const handleDragStart = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
-    
+
     const pos = stage.getPointerPosition();
     if (pos) {
-      setIsDragging(true);
+      setDragStartPos(pos); // Record where the drag started
+      setIsDragging(false); // Don't set to true yet
       setLastPos(pos);
     }
   };
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (!isDragging) return;
-    
     const stage = e.target.getStage();
     if (!stage) return;
-    
+
     const pos = stage.getPointerPosition();
     if (!pos) return;
+
+    // Check if we've moved enough to consider this a drag
+    if (!isDragging) {
+      const distance = Math.sqrt(
+        Math.pow(pos.x - dragStartPos.x, 2) +
+        Math.pow(pos.y - dragStartPos.y, 2)
+      );
+      if (distance > 5) {
+        setIsDragging(true);
+      } else {
+        return; // Not dragging yet
+      }
+    }
 
     const dx = pos.x - lastPos.x;
     const dy = pos.y - lastPos.y;

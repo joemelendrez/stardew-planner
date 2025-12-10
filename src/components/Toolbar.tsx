@@ -29,11 +29,11 @@ export default function Toolbar({ canvasRef }: ToolbarProps) {
   };
 
   const handleZoomIn = () => {
-    setViewport({ scale: Math.min(viewport.scale * 1.2, 3) });
+    setViewport({ scale: Math.min(viewport.scale * 1.2, 5) });
   };
 
   const handleZoomOut = () => {
-    setViewport({ scale: Math.max(viewport.scale / 1.2, 0.2) });
+    setViewport({ scale: Math.max(viewport.scale / 1.2, 0.05) });
   };
 
   const handleResetView = () => {

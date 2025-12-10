@@ -1,10 +1,23 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import FarmCanvas, { type FarmCanvasRef } from '@/components/FarmCanvas';
+import dynamic from 'next/dynamic';
+import type { FarmCanvasRef } from '@/components/FarmCanvas.types';
 import ItemPalette from '@/components/ItemPalette';
 import Toolbar from '@/components/Toolbar';
 import { Menu, X } from 'lucide-react';
+
+// Dynamically import FarmCanvas to prevent SSR issues with Konva
+const FarmCanvas = dynamic(() => import('@/components/FarmCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-green-100">
+      <div className="text-center">
+        <div className="text-xl font-semibold text-green-700">Loading canvas...</div>
+      </div>
+    </div>
+  ),
+});
 
 export default function Home() {
   const [showPalette, setShowPalette] = useState(false);

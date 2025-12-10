@@ -7,11 +7,9 @@ import { useFarmStore } from '@/store/farmStore';
 import { TILE_SIZE, getItemById } from '@/data/items';
 import { generateId, isWithinBounds } from '@/lib/utils';
 import type { KonvaEventObject } from 'konva/lib/Node';
-import type { ExportOptions } from './ExportImageModal';
+import type { ExportOptions, FarmCanvasRef } from './FarmCanvas.types';
 
-export interface FarmCanvasRef {
-  exportAsImage: (options: ExportOptions) => void;
-}
+export type { FarmCanvasRef } from './FarmCanvas.types';
 
 const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);

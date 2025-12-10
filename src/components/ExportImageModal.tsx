@@ -3,17 +3,14 @@
 import { useState } from 'react';
 import { useFarmStore } from '@/store/farmStore';
 import { X, Download, Image as ImageIcon } from 'lucide-react';
+import type { ExportOptions } from './FarmCanvas.types';
+
+export type { ExportOptions } from './FarmCanvas.types';
 
 interface ExportImageModalProps {
   isOpen: boolean;
   onClose: () => void;
   onExport: (options: ExportOptions) => void;
-}
-
-export interface ExportOptions {
-  scale: number;
-  includeMetadata: boolean;
-  includeWatermark: boolean;
 }
 
 const RESOLUTION_PRESETS = [

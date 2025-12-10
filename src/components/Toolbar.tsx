@@ -4,8 +4,8 @@ import { useState, useRef } from 'react';
 import { useFarmStore } from '@/store/farmStore';
 import { Save, Trash2, Download, ZoomIn, ZoomOut, RotateCcw, FolderOpen, Upload, Image, FileJson, Plus } from 'lucide-react';
 import MyFarmsModal from './MyFarmsModal';
-import ExportImageModal, { type ExportOptions } from './ExportImageModal';
-import type { FarmCanvasRef } from './FarmCanvas';
+import ExportImageModal from './ExportImageModal';
+import type { ExportOptions, FarmCanvasRef } from './FarmCanvas.types';
 
 interface ToolbarProps {
   canvasRef?: React.RefObject<FarmCanvasRef>;

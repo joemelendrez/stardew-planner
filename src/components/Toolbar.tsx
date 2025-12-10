@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useFarmStore } from '@/store/farmStore';
-import { Save, Trash2, Download, ZoomIn, ZoomOut, RotateCcw, FolderOpen, Upload, Image, FileJson, Plus } from 'lucide-react';
+import { Save, Trash2, Download, ZoomIn, ZoomOut, RotateCcw, FolderOpen, Upload, Image, FileJson, Plus, Maximize2 } from 'lucide-react';
 import MyFarmsModal from './MyFarmsModal';
 import ExportImageModal from './ExportImageModal';
 import type { ExportOptions, FarmCanvasRef } from './FarmCanvas.types';
@@ -33,11 +33,29 @@ export default function Toolbar({ canvasRef }: ToolbarProps) {
   };
 
   const handleZoomOut = () => {
-    setViewport({ scale: Math.max(viewport.scale / 1.2, 0.05) });
+    setViewport({ scale: Math.max(viewport.scale / 1.2, 0.01) }); // Allow zooming down to 1%
   };
 
   const handleResetView = () => {
     setViewport({ x: 0, y: 0, scale: 1 });
+  };
+
+  const handleFitToScreen = () => {
+    // Calculate zoom to fit entire farm on screen
+    const TILE_SIZE = 32;
+    const farmWidth = currentFarm.gridSize.width * TILE_SIZE;
+    const farmHeight = currentFarm.gridSize.height * TILE_SIZE;
+
+    // Estimate canvas size (this is approximate)
+    const canvasWidth = window.innerWidth - (window.innerWidth > 1024 ? 320 : 0); // Minus sidebar on desktop
+    const canvasHeight = window.innerHeight - 250; // Minus header/toolbar/footer
+
+    // Calculate scale to fit both dimensions with some padding
+    const scaleX = canvasWidth / farmWidth;
+    const scaleY = canvasHeight / farmHeight;
+    const fitScale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for padding
+
+    setViewport({ x: 20, y: 20, scale: fitScale });
   };
 
   const handleExportJSON = () => {
@@ -192,6 +210,14 @@ export default function Toolbar({ canvasRef }: ToolbarProps) {
             title="Reset View"
           >
             <RotateCcw size={18} />
+          </button>
+
+          <button
+            onClick={handleFitToScreen}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+            title="Fit to Screen"
+          >
+            <Maximize2 size={18} />
           </button>
 
           {/* Farm info */}

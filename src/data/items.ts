@@ -1,4 +1,4 @@
-import { ItemData, FarmType } from '@/types';
+import { ItemData, FarmType, ItemCategory } from '@/types';
 
 export const TILE_SIZE = 32; // pixels per tile
 

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import FarmCanvas from '@/components/FarmCanvas';
+import { useState, useRef } from 'react';
+import FarmCanvas, { type FarmCanvasRef } from '@/components/FarmCanvas';
 import ItemPalette from '@/components/ItemPalette';
 import Toolbar from '@/components/Toolbar';
 import { Menu, X } from 'lucide-react';
 
 export default function Home() {
   const [showPalette, setShowPalette] = useState(false);
+  const canvasRef = useRef<FarmCanvasRef>(null);
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -64,10 +65,10 @@ export default function Home() {
         {/* Main canvas area */}
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="p-4">
-            <Toolbar />
+            <Toolbar canvasRef={canvasRef} />
           </div>
           <div className="flex-1 overflow-hidden">
-            <FarmCanvas />
+            <FarmCanvas ref={canvasRef} />
           </div>
         </main>
       </div>

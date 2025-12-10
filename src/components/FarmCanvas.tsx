@@ -1,20 +1,114 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { Stage, Layer, Rect, Line, Text } from 'react-konva';
+import Konva from 'konva';
 import { useFarmStore } from '@/store/farmStore';
 import { TILE_SIZE, getItemById } from '@/data/items';
 import { generateId, isWithinBounds } from '@/lib/utils';
 import type { KonvaEventObject } from 'konva/lib/Node';
+import type { ExportOptions } from './ExportImageModal';
 
-export default function FarmCanvas() {
+export interface FarmCanvasRef {
+  exportAsImage: (options: ExportOptions) => void;
+}
+
+const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<Konva.Stage>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  
+
   const { currentFarm, selectedItem, addItem, removeItem, viewport, setViewport } = useFarmStore();
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+
+  // Expose export method to parent
+  useImperativeHandle(ref, () => ({
+    exportAsImage: (options: ExportOptions) => {
+      if (!stageRef.current) return;
+
+      const stage = stageRef.current;
+      const originalScale = viewport.scale;
+      const originalX = viewport.x;
+      const originalY = viewport.y;
+
+      // Temporarily reset viewport for clean export
+      setViewport({ scale: 1, x: 0, y: 0 });
+
+      // Wait for render to complete
+      setTimeout(() => {
+        const layer = stage.findOne('Layer');
+        if (!layer) return;
+
+        // Add metadata layer if requested
+        if (options.includeMetadata || options.includeWatermark) {
+          const metadataLayer = new Konva.Layer();
+          const gridWidth = currentFarm.gridSize.width * TILE_SIZE;
+          const gridHeight = currentFarm.gridSize.height * TILE_SIZE;
+
+          // Add metadata text
+          if (options.includeMetadata) {
+            const date = new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            });
+
+            const titleText = new Konva.Text({
+              x: 10,
+              y: gridHeight + 20,
+              text: `${currentFarm.name} - ${date}`,
+              fontSize: 24,
+              fontFamily: 'Arial',
+              fill: '#333',
+            });
+            metadataLayer.add(titleText);
+          }
+
+          // Add watermark
+          if (options.includeWatermark) {
+            const gridWidth = currentFarm.gridSize.width * TILE_SIZE;
+            const gridHeight = currentFarm.gridSize.height * TILE_SIZE;
+
+            const watermark = new Konva.Text({
+              x: gridWidth - 200,
+              y: gridHeight + 20,
+              text: 'Stardew Planner',
+              fontSize: 18,
+              fontFamily: 'Arial',
+              fill: '#999',
+              align: 'right',
+            });
+            metadataLayer.add(watermark);
+          }
+
+          stage.add(metadataLayer);
+        }
+
+        // Export with specified scale
+        const dataURL = stage.toDataURL({
+          pixelRatio: options.scale,
+          mimeType: 'image/png',
+        });
+
+        // Remove metadata layer if added
+        const metadataLayer = stage.findOne('.metadata-layer');
+        if (metadataLayer) {
+          metadataLayer.destroy();
+        }
+
+        // Download the image
+        const link = document.createElement('a');
+        link.download = `${currentFarm.name.replace(/\s+/g, '-')}-${Date.now()}.png`;
+        link.href = dataURL;
+        link.click();
+
+        // Restore viewport
+        setViewport({ scale: originalScale, x: originalX, y: originalY });
+      }, 100);
+    },
+  }));
 
   // Handle responsive canvas sizing
   useEffect(() => {
@@ -127,6 +221,7 @@ export default function FarmCanvas() {
   return (
     <div ref={containerRef} className="w-full h-full bg-green-100">
       <Stage
+        ref={stageRef}
         width={dimensions.width}
         height={dimensions.height}
         onMouseDown={handleDragStart}
@@ -224,4 +319,8 @@ export default function FarmCanvas() {
       </Stage>
     </div>
   );
-}
+});
+
+FarmCanvas.displayName = 'FarmCanvas';
+
+export default FarmCanvas;

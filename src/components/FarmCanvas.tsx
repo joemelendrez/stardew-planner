@@ -179,7 +179,7 @@ const FarmCanvas = forwardRef<FarmCanvasRef, {}>((props, ref) => {
     };
 
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    const clampedScale = Math.max(0.05, Math.min(5, newScale)); // Allow zoom from 5% to 500%
+    const clampedScale = Math.max(0.01, Math.min(5, newScale)); // Allow zoom from 1% to 500%
 
     setViewport({
       scale: clampedScale,

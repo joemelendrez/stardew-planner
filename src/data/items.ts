@@ -15,6 +15,14 @@ export const FARM_SIZES: Record<FarmType, { width: number; height: number }> = {
 export const ITEMS: ItemData[] = [
   // Buildings
   {
+    id: 'farmhouse',
+    name: 'Farmhouse',
+    category: 'buildings',
+    size: { width: 10, height: 6 },
+    color: '#D2691E',
+    description: 'Your home on the farm',
+  },
+  {
     id: 'coop',
     name: 'Coop',
     category: 'buildings',

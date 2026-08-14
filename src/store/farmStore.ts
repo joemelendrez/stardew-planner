@@ -35,7 +35,15 @@ const createNewFarm = (farmType: FarmType = 'standard'): FarmLayout => ({
   name: 'My Farm',
   farmType,
   gridSize: FARM_SIZES[farmType],
-  items: [],
+  items: [
+    // Pre-place the farmhouse in the standard location (top-left area of farm)
+    {
+      id: 'farmhouse-initial',
+      itemId: 'farmhouse',
+      x: 58,
+      y: 14,
+    },
+  ],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
